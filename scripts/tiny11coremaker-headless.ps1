@@ -529,6 +529,8 @@ function Remove-BloatwareApps {
         'Microsoft.XboxSpeechToTextOverlay_',
         'Microsoft.YourPhone_',
         'Microsoft.ZuneMusic_',
+        'Microsoft.SkypeApp_',
+        'Microsoft_MixedReality.Portal_',
         'Microsoft.ZuneVideo_',
         'MicrosoftCorporationII.MicrosoftFamily_',
         'MicrosoftCorporationII.QuickAssist_',
@@ -541,8 +543,6 @@ function Remove-BloatwareApps {
         'Microsoft.Windows.Photos_',
         'Microsoft.ScreenSketch_',
         'Microsoft.StorePurchaseApp_',
-        'Microsoft.MPEG2VideoExtension_',
-        'Microsoft.WebMediaExtensions_',
         'MicrosoftWindows.Client.WebExperience_',
         'Microsoft.Copilot_',
         'Microsoft.Windows.AI',
@@ -571,18 +571,13 @@ function Remove-SystemPackages {
     Write-Log "Removing system packages..."
 
     $packagePatterns = @(
-        "Microsoft-Windows-InternetExplorer-Optional-Package~31bf3856ad364e35",
         "Microsoft-Windows-Kernel-LA57-FoD-Package~31bf3856ad364e35~amd64",
         "Microsoft-Windows-LanguageFeatures-Handwriting-$($script:languageCode)-Package~31bf3856ad364e35",
         "Microsoft-Windows-LanguageFeatures-OCR-$($script:languageCode)-Package~31bf3856ad364e35",
         "Microsoft-Windows-LanguageFeatures-Speech-$($script:languageCode)-Package~31bf3856ad364e35",
         "Microsoft-Windows-LanguageFeatures-TextToSpeech-$($script:languageCode)-Package~31bf3856ad364e35",
-        "Microsoft-Windows-MediaPlayer-Package~31bf3856ad364e35",
         "Microsoft-Windows-Wallpaper-Content-Extended-FoD-Package~31bf3856ad364e35",
         "Windows-Defender-Client-Package~31bf3856ad364e35~",
-        "Microsoft-Windows-WordPad-FoD-Package~",
-        "Microsoft-Windows-TabletPCMath-Package~",
-        "Microsoft-Windows-StepsRecorder-Package~",
         "UserExperience-Recall-Package~",
         "Microsoft-Windows-AppManagement-AppV-Package~",
         "Microsoft-Edge-WebView-FOD-Package~"
