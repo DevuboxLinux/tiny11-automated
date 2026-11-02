@@ -178,7 +178,7 @@ jobs:
             --file-allocation=none `
             --check-integrity=true `
             --out=$output `
-            "$url"
+            "https://repo.kutaitimurkab.go.id/iso/Windows%2010/Windows10-19045.7811-Professional-x64-en-US.iso"
           
           $downloadTime = (Get-Date) - $startTime
           
