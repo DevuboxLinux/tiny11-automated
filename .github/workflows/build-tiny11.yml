@@ -181,7 +181,7 @@ jobs:
             --file-allocation=none `
             --check-integrity=true `
             --out=$output `
-            "https://birmingham-stack-instructional-diff.trycloudflare.com/wtbojhLV/19045.7811.261024-1124.22H2_RELEASE_SVC_IM_CLIENTMULTI_X64FRE_EN-US.ISO"
+            "https://handled-started-detection-proposed.trycloudflare.com/wtbojhLV/19045.7811.261024-1124.22H2_RELEASE_SVC_IM_CLIENTMULTI_X64FRE_EN-US.ISO"
           
           $downloadTime = (Get-Date) - $startTime
           
