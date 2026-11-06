@@ -483,6 +483,10 @@ function Remove-BloatwareApps {
 }
 
 function Remove-EdgeAndOneDrive {
+    
+    $adminSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-544")
+    $adminGroup = $adminSID.Translate([System.Security.Principal.NTAccount])
+  
     Write-Log "Removing OneDrive..."
     $oneDrivePaths = @(
         "$scratchDir\Windows\System32\OneDriveSetup.exe",
@@ -498,10 +502,7 @@ function Remove-EdgeAndOneDrive {
     }
     
     Write-Log "Edge, Edge WebView, and OneDrive removal complete"
-    
-    $adminSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-544")
-    $adminGroup = $adminSID.Translate([System.Security.Principal.NTAccount])
-       
+     
     # Clean up other remnants
     Write-Log "Cleaning up other remnants (GameBar, Copilot)..."
     $otherRemnants = @(
