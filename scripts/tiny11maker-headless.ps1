@@ -431,59 +431,30 @@ function Remove-BloatwareApps {
         }
     
     $packagePrefixes = @(
-        'AppUp.IntelManagementandSecurityStatus',
         'Clipchamp.Clipchamp',
-        'DolbyLaboratories.DolbyAccess',
-        'DolbyLaboratories.DolbyDigitalPlusDecoderOEM',
+        'Microsoft.3DViewer',
         'Microsoft.BingNews',
         'Microsoft.BingSearch',
         'Microsoft.BingWeather',
         'Microsoft.Copilot',
         'Microsoft.Windows.CrossDevice',
-        'Microsoft.GamingApp',
         'Microsoft.GetHelp',
         'Microsoft.Getstarted',
         'Microsoft.Microsoft3DViewer',
         'Microsoft.MicrosoftOfficeHub',
-        'Microsoft.MicrosoftSolitaireCollection',
-        'Microsoft.MicrosoftStickyNotes',
         'Microsoft.MixedReality.Portal',
-        'Microsoft.MSPaint',
         'Microsoft.Office.OneNote',
         'Microsoft.OfficePushNotificationUtility',
         'Microsoft.OutlookForWindows',
-        'Microsoft.Paint',
         'Microsoft.People',
         'Microsoft.PowerAutomateDesktop',
         'Microsoft.SkypeApp',
-        'Microsoft.StartExperiencesApp',
         'Microsoft.Todos',
-        'Microsoft.Wallet',
         'Microsoft.Windows.DevHome',
         'Microsoft.Windows.Copilot',
         'Microsoft.Windows.Teams',
-        'Microsoft.Windows.Photos',
-        'Microsoft.ScreenSketch',
-        'Microsoft.StorePurchaseApp',
-        'Microsoft.MPEG2VideoExtension',
-        'Microsoft.WebMediaExtensions',
-        'MicrosoftWindows.Client.WebExperience',
-        'Microsoft.WindowsAlarms',
-        'Microsoft.WindowsCamera',
-        'microsoft.windowscommunicationsapps',
         'Microsoft.WindowsFeedbackHub',
         'Microsoft.WindowsMaps',
-        'Microsoft.WindowsSoundRecorder',
-        'Microsoft.WindowsTerminal',
-        'Microsoft.Xbox.TCUI',
-        'Microsoft.XboxApp',
-        'Microsoft.XboxGameOverlay',
-        'Microsoft.XboxGamingOverlay',
-        'Microsoft.XboxIdentityProvider',
-        'Microsoft.XboxSpeechToTextOverlay',
-        'Microsoft.YourPhone',
-        'Microsoft.ZuneMusic',
-        'Microsoft.ZuneVideo',
         'MicrosoftCorporationII.MicrosoftFamily',
         'MicrosoftCorporationII.QuickAssist',
         'MSTeams',
@@ -512,40 +483,6 @@ function Remove-BloatwareApps {
 }
 
 function Remove-EdgeAndOneDrive {
-    Write-Log "Removing Microsoft Edge and Edge WebView..."
-    
-    $adminSID = New-Object System.Security.Principal.SecurityIdentifier("S-1-5-32-544")
-    $adminGroup = $adminSID.Translate([System.Security.Principal.NTAccount])
-    
-    $edgePaths = @(
-        "$scratchDir\Program Files (x86)\Microsoft\Edge",
-        "$scratchDir\Program Files (x86)\Microsoft\EdgeUpdate",
-        "$scratchDir\Program Files (x86)\Microsoft\EdgeCore",
-        "$scratchDir\Program Files (x86)\Microsoft\EdgeWebView",
-        "$scratchDir\Windows\System32\Microsoft-Edge-Webview"
-    )
-    
-    foreach ($path in $edgePaths) {
-        if (Test-Path $path) {
-            Write-Log "Deleting Edge component: $path"
-            & takeown /f $path /r /a | Out-Null
-            & icacls $path /grant "$($adminGroup.Value):(F)" /T /C | Out-Null
-            Remove-Item -Path $path -Recurse -Force -ErrorAction SilentlyContinue
-        }
-    }
-    
-    # Remove Edge WebView directories inside WinSxS (covers amd64 and arm64)
-    Write-Log "Removing Edge WebView assemblies from WinSxS..."
-    $winSxSPaths = Get-ChildItem -Path "$scratchDir\Windows\WinSxS" -Filter "*microsoft-edge-webview_31bf3856ad364e35*" -Directory -ErrorAction SilentlyContinue | Select-Object -ExpandProperty FullName
-    foreach ($winSxSPath in $winSxSPaths) {
-        if (Test-Path $winSxSPath) {
-            Write-Log "Taking ownership and removing WinSxS WebView folder: $winSxSPath"
-            & takeown /f $winSxSPath /r /a | Out-Null
-            & icacls $winSxSPath /grant "$($adminGroup.Value):(F)" /T /C | Out-Null
-            Remove-Item -Path $winSxSPath -Recurse -Force -ErrorAction SilentlyContinue
-        }
-    }
-    
     Write-Log "Removing OneDrive..."
     $oneDrivePaths = @(
         "$scratchDir\Windows\System32\OneDriveSetup.exe",
@@ -565,7 +502,6 @@ function Remove-EdgeAndOneDrive {
     # Clean up other remnants
     Write-Log "Cleaning up other remnants (GameBar, Copilot)..."
     $otherRemnants = @(
-        "$scratchDir\Windows\GameBarPresenceWriter",
         "$scratchDir\Windows\System32\SettingsHandlers_Copilot.dll"
     )
     foreach ($path in $otherRemnants) {
@@ -649,11 +585,7 @@ function Apply-RegistryTweaks {
     # Disable Chat icon
     Set-RegistryValue 'HKLM\zSOFTWARE\Policies\Microsoft\Windows\Windows Chat' 'ChatIcon' 'REG_DWORD' '3'
     Set-RegistryValue 'HKLM\zNTUSER\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced' 'TaskbarMn' 'REG_DWORD' '0'
-    
-    # Remove Edge registries
-    Remove-RegistryKey "HKLM\zSOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge"
-    Remove-RegistryKey "HKLM\zSOFTWARE\WOW6432Node\Microsoft\Windows\CurrentVersion\Uninstall\Microsoft Edge Update"
-    
+
     # Disable OneDrive folder backup
     Set-RegistryValue "HKLM\zSOFTWARE\Policies\Microsoft\Windows\OneDrive" "DisableFileSyncNGSC" "REG_DWORD" "1"
     
@@ -1094,9 +1026,6 @@ try {
     Remove-BloatwareApps
     Remove-EdgeAndOneDrive
     Apply-RegistryTweaks
-    Apply-PerformanceTweaks
-    Remove-ScheduledTasks
-    Remove-NonEssentialServices
     Unload-RegistryHives
     
     # Finalization phase
