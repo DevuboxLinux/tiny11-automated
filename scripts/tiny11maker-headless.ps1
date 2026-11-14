@@ -1,4 +1,4 @@
-﻿<#
+<#
 .SYNOPSIS
     Headless script to build a trimmed-down Windows 11 image for CI/CD automation.
 
@@ -89,6 +89,30 @@ function Write-Log {
     $logMessage = "[$timestamp] [$Level] $Message"
     Write-Output $logMessage
     Add-Content -Path $logFile -Value $logMessage -ErrorAction SilentlyContinue
+}
+
+function Get-TakeownYesAnswer {
+    # takeown /R needs /D, otherwise it asks "Do you want to replace the directory permissions...? [Y/N]"
+    # on the console for every folder the administrator cannot list (e.g. ProgramData\Microsoft\Windows
+    # Defender Advanced Threat Protection, present only in Pro/Enterprise) and the build waits forever.
+    # /D accepts only the "yes" letter of the system language: Y in English, T in Polish, J in German,
+    # O in French... - "/D Y" is rejected on those systems. Probe once on an empty folder and cache it.
+    $cached = Get-Variable -Name takeownYesAnswer -Scope Script -ValueOnly -ErrorAction SilentlyContinue
+    if ($cached) { return $cached }
+
+    $answer = 'Y'
+    $probe = Join-Path ([IO.Path]::GetTempPath()) ('takeown-probe-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $probe -Force | Out-Null
+    try {
+        foreach ($candidate in @('Y', 'T', 'J', 'O', 'S', 'A', 'I', 'E', [string][char]0x414)) {
+            & { $ErrorActionPreference = 'Continue'; & takeown.exe /F $probe /R /D $candidate 2>&1 | Out-Null }
+            if ($LASTEXITCODE -eq 0) { $answer = $candidate; break }
+        }
+    } finally {
+        Remove-Item -LiteralPath $probe -Recurse -Force -ErrorAction SilentlyContinue
+    }
+    Set-Variable -Name takeownYesAnswer -Scope Script -Value $answer
+    return $answer
 }
 
 function Write-IsoAnswerFile {
@@ -501,7 +525,7 @@ function Remove-EdgeAndOneDrive {
         }
     }
     
-    Write-Log "Edge, Edge WebView, and OneDrive removal complete"
+    Write-Log "OneDrive removal complete"
      
     # Clean up other remnants
     Write-Log "Cleaning up other remnants (GameBar, Copilot)..."
@@ -644,14 +668,14 @@ function Apply-RegistryTweaks {
 
     # Easter Egg / Branding
     Write-Log "Adding Easter Egg branding..."
-    Set-RegistryValue 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'legalnoticecaption' 'REG_SZ' 'Tiny11 Automated'
-    Set-RegistryValue 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'legalnoticetext' 'REG_SZ' 'This image was built using Tiny11 Automated by kelexine. Enjoy your lightweight Windows experience!'
+    Set-RegistryValue 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'legalnoticecaption' 'REG_SZ' 'Tiny10 Automated'
+    Set-RegistryValue 'HKLM\zSOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System' 'legalnoticetext' 'REG_SZ' 'This image was built using Tiny10 Automated by kelexine. Enjoy your lightweight Windows experience!'
     
     # Desktop Context Menu Link
-    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny11Info' 'MUIVerb' 'REG_SZ' 'Tiny11 Automated Info'
-    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny11Info' 'Icon' 'REG_SZ' 'shell32.dll,22'
-    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny11Info' 'Position' 'REG_SZ' 'Bottom'
-    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny11Info\command' '' 'REG_SZ' 'explorer.exe "https://github.com/kelexine/tiny11-automated"'
+    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny10Info' 'MUIVerb' 'REG_SZ' 'Tiny10 Automated Info'
+    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny10Info' 'Icon' 'REG_SZ' 'shell32.dll,22'
+    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny10Info' 'Position' 'REG_SZ' 'Bottom'
+    Set-RegistryValue 'HKLM\zSOFTWARE\Classes\DesktopBackground\Shell\Tiny10Info\command' '' 'REG_SZ' 'explorer.exe "https://github.com/kelexine/tiny11-automated"'
 
     Write-Log "Registry tweaks applied"
 }
